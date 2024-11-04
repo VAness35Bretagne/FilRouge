@@ -73,7 +73,7 @@ class Interfacejoueur(QWidget):
         if self.drapeaux[x][y]:
             self.drapeaux[x][y] = False
             self.boutons[x][y].setText("")
-            self.grille.nb_bombes += 1  # Restauration du               compteur de drapeaux
+            self.grille.nb_bombes += 1  # Restauration du compteur de drapeaux
         else:
             self.drapeaux[x][y] = True
             self.boutons[x][y].setText("🚩")
@@ -84,7 +84,7 @@ class Interfacejoueur(QWidget):
         
     # Vérifiez si le joueur a gagné
         if self.grille.nombre_de_bombes == 0:
-            self.afficher_message_victoire()  # Appel de la méthode de victoire
+            self.afficher_message_victoire()  
 
     def reveler_case(self, x, y):
         
@@ -92,24 +92,19 @@ class Interfacejoueur(QWidget):
         Révèle la case spécifiée par ses coordonnées (x, y) et met à jour l'affichage.
     
         """
-        
+        #Actualisation de la grille pour le premier clique
         if self.premier_clic:
-            
             self.grille.placer_bombe_aleatoirement((x,y)) 
             self.grille.calculer_mines_adjacentes()
             self.premier_clic = False  # Change l'état après le premier clic
-        if self.drapeaux[x][y]:
-            QMessageBox.information(self, "Info", "Cette case est marquée avec un drapeau.")
-            return
-            
-        # Vérifie si la case est une bombe
+        
+        # Situation où la case est une bombe
         if self.grille.grille[x][y] == -1:
-            positions_bombes = self.grille.All_bombes() # Récupère la liste des positions des bombes
+            positions_bombes = self.grille.All_bombes() 
             for (i, j) in positions_bombes:
                 self.boutons[i][j].setText("💣")  
             self.compteur.stop()    
             self.afficher_message_defaite()
-            
             return
             
         mines_adjacentes = self.grille.grille[x][y]
@@ -118,6 +113,7 @@ class Interfacejoueur(QWidget):
         # Appliquer la couleur en fonction du nombre de mines adjacentes
         self.appliquer_couleur(x, y, mines_adjacentes)
         
+        #Cas particulier lorsque l'on révèle un 0
         if self.grille.grille[x][y] == 0:
             
             directions = [(-1, -1), (-1, 0), (-1, 1),
@@ -126,13 +122,13 @@ class Interfacejoueur(QWidget):
             
             for dx, dy in directions :
                 nx, ny = x + dx, y + dy
-                # Vérifie que nous ne sortons pas des limites de la grille
                 if 0 <= nx < self.grille.nb_lignes and 0 <= ny < self.grille.nb_colonnes:
-                # Révèle la case adjacente
-                    
                     if self.boutons[nx][ny].text() == "":
-                        self.reveler_case(nx, ny)  # Appel récursif pour révéler les cases adjacentes
+                        self.reveler_case(nx, ny)  
 
+
+
+    #Méthode pour l'esthétique et la compréhension du jeu
     def appliquer_couleur(self, x, y, mines_adjacentes):
             """Applique une couleur au bouton en fonction du nombre de mines adjacentes."""
             couleurs = {
@@ -148,7 +144,6 @@ class Interfacejoueur(QWidget):
             self.boutons[x][y].setStyleSheet(f"color: {couleurs.get(mines_adjacentes, 'black')};")
     
         
-    
     
     def afficher_message_defaite(self):
         """Affiche un message indiquant que la partie est perdue."""
@@ -167,17 +162,6 @@ class Interfacejoueur(QWidget):
         msg.exec_()
     
     
-    # def mousePressEvent(self,event):
-    #     if event.button() == Qt.LeftButton:
-    #         print("appui bouton gauche")
-    #         print("position = " + str(event.x()) + " " + str(event.y()))
-        
-    #     if event.button() == Qt.RightButton:
-    #         print("appui bouton droite")
-    #         print("position = " + str(event.x()) + " " + str(event.y()))
-
-
-
 
 if __name__ == "__main__":
     niveau_choisi = input("Choisissez un niveau (débutant, intermédiaire, difficile) : ").lower()

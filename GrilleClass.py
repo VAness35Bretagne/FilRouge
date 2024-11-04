@@ -21,7 +21,6 @@ class Grille:
         
         print(f"Grille de {self.nb_lignes} lignes et {self.nb_colonnes} colonnes avec {self.nombre_de_bombes} bombes.")
         
-        
         # Création de la grille
         self.grille = [[0 for _ in range(self.nb_colonnes)] for _ in range(self.nb_lignes)]
         
@@ -49,6 +48,7 @@ class Grille:
             print(" ".join(str(cell) for cell in ligne))
         print("\n")  # Saut de ligne pour mieux voir la grille
         
+        
 
     def placer_bombe_aleatoirement(self, premier_clic):
         
@@ -56,7 +56,6 @@ class Grille:
         Permet de placer aléatoirement des bombes, en s'assurant qu'aucune bombe 
         n'est placée dans les cases adjacentes au premier clic.
         
-        :param premier_clic: tuple (x, y) de la première case cliquée
         """
         
         x, y = premier_clic
@@ -85,36 +84,12 @@ class Grille:
         
         for k in positions_choisies:
             self.grille[k[0]][k[1]] = -1  # Placer la bombe
-
-    
-
         
-        
-if __name__ == "__main__":
-    
-    
-    # Demande au joueur de choisir un niveau
-    niveau_choisi = input("Choisissez un niveau (débutant, intermédiaire, difficile) : ").lower()
+        print("Grille actualisée après le premier clic :")
 
-    # Vérification du niveau choisi
-    if niveau_choisi not in ['débutant', 'intermédiaire', 'difficile']:
-        print("Niveau invalide. Par défaut, le niveau débutant sera utilisé.")
-        niveau_choisi = 'débutant'
+    
 
-    # Initialisation de la grille en fonction du choix du joueur
-    
-    print(f"Vous avez choisi le niveau {niveau_choisi}.")
-    grille = Grille(niveau_choisi)
-    
-    grille.afficher_grille()
-    
-    #Grille contenant les valeurs aléatoires des bombes
-    
-   
-    grille.afficher_grille()
-    
-    
-    
+
     
     
     
