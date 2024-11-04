@@ -8,32 +8,32 @@ Created on Thu Oct 24 10:08:52 2024
 import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QPushButton
-import CaseClass as CC 
+
 from PyQt5.QtWidgets import QMessageBox
 import compteur as comp
 from PyQt5.QtWidgets import QLabel, QVBoxLayout
+import CaseClass as CC
 
-class Fenetre(QWidget):
+class Interfacejoueur(QWidget):
     
     def __init__(self, niveau='débutant'):
         super().__init__()
       
+        self.niveau=niveau
         self.setWindowTitle(f"Demineur - Niveau {niveau.capitalize()}")
         
-        # Création du layout principal
+        # Création de l'interface utilisateur
         layout_principal = QVBoxLayout()
-        
-        # Ajoute le label du compteur
         self.label_compteur = QLabel("Temps : 0 s")
         layout_principal.addWidget(self.label_compteur)
         
         self.compteur = comp.Compteur(self.label_compteur)  # Initialisation du compteur
         self.compteur.start()  # Démarrage du chrono
         
-        # Initialisation des attributs
-        self.niveau = niveau
-        self.grille = None
+        self.grille = CC.Case(niveau)
         self.boutons = []
+        self.drapeaux = [[False for _ in range(self.grille.nb_colonnes)] for _ in range(self.grille.nb_lignes)]
+        
         self.premier_clic = True  # Attribut pour vérifier le premier clic
 
         # Layout pour la grille des boutons
@@ -41,86 +41,82 @@ class Fenetre(QWidget):
         layout_principal.addLayout(self.grid_layout)  # Ajoute la grille dans le layout principal
         
         self.setLayout(layout_principal)
-        
-        # Appel initial pour créer la grille
-        self.grille = CC.Case(self.niveau)
         self.setup_bouton()  # Crée les boutons, même si ils sont vides au départ
+        
+        #Comptage des drapeaux
+        self.label_drapeaux = QLabel(f"Drapeaux restants : {self.grille.nombre_de_bombes}")
+        layout_principal.addWidget(self.label_drapeaux)  # Ajoute le label dans le layout principal
 
         
     def setup_bouton(self):
         """
         Crée et initialise les boutons pour chaque case de la grille du Démineur.
     
-        Pour chaque cellule de la grille, cette fonction crée un bouton de taille 
-        fixe (40x40 pixels) et le place dans une grille d'affichage (QGridLayout). 
-        Chaque bouton est connecté à la méthode `reveler_case`, qui est appelée lorsqu'un
-        bouton est cliqué. Les boutons sont stockés dans une liste.
-    
-        Attributs modifiés:
-        -------------------
-        - self.boutons : Liste contenant les boutons de la grille du Démineur.
-        - self.grid_layout : Grille d'affichage qui ajoute chaque bouton à la fenêtre de jeu.
         
         """
-        self.boutons = []
-        for i in range(self.grille.lignes):
+        for i in range(self.grille.nb_lignes):
             row = []
-            for j in range(self.grille.colonnes):
+            for j in range(self.grille.nb_colonnes):
                 bouton = QPushButton("")  # Crée un bouton vide
                 bouton.setFixedSize(40, 40)  # Taille du bouton
                 # Connecte le bouton à une méthode qui révèle la case
                 bouton.clicked.connect(lambda _, x=i, y=j: self.reveler_case(x, y))
+                bouton.setContextMenuPolicy(Qt.CustomContextMenu)
+                bouton.customContextMenuRequested.connect(lambda pos, x=i, y=j: self.poser_drapeau(x, y))
+                
                 self.grid_layout.addWidget(bouton, i, j)  # Ajoute le bouton au layout
                 row.append(bouton)
             self.boutons.append(row)
             
+    
+    def poser_drapeau(self, x, y):
+        if self.drapeaux[x][y]:
+            self.drapeaux[x][y] = False
+            self.boutons[x][y].setText("")
+            self.grille.nb_bombes += 1  # Restauration du               compteur de drapeaux
+        else:
+            self.drapeaux[x][y] = True
+            self.boutons[x][y].setText("🚩")
+            self.grille.nombre_de_bombes -= 1  # Décrémentation du compteur de drapeaux
+            
+        # Met à jour le label pour refléter le nombre de drapeaux restants
+        self.label_drapeaux.setText(f"Drapeaux restants : {self.grille.nombre_de_bombes}")
+        
+    # Vérifiez si le joueur a gagné
+        if self.grille.nombre_de_bombes == 0:
+            self.afficher_message_victoire()  # Appel de la méthode de victoire
 
     def reveler_case(self, x, y):
         
         """
         Révèle la case spécifiée par ses coordonnées (x, y) et met à jour l'affichage.
     
-        Lors du premier clic, la fonction génère la grille avec des bombes, 
-        en veillant à ne pas en placer autour de la case initialement cliquée.
-        Ensuite, la fonction révèle le contenu de la case cliquée :
-        - Si c'est une bombe, elle affiche une icône de bombe.
-        - Sinon, elle affiche le nombre de mines adjacentes.
-        Si la case contient un "0", la fonction appelle récursivement `reveler_case`
-        pour révéler les cases adjacentes.
-    
-        Paramètres:
-        -----------
-        - x (int) : Coordonnée x de la case cliquée (ligne).
-        - y (int) : Coordonnée y de la case cliquée (colonne).
-    
-        Attributs modifiés:
-        -------------------
-        - self.grille : Initialisée lors du premier clic (si `premier_clic` est True).
-        - self.boutons : Mise à jour de l'affichage du texte des boutons, en fonction
-                         du contenu des cases (bombe ou nombre de mines adjacentes).
         """
         
         if self.premier_clic:
             
-            self.grille.placer_bombe_aleatoirement((x,y))  # Assure-toi que cette méthode ne place pas de bombes autour de (x, y)
+            self.grille.placer_bombe_aleatoirement((x,y)) 
             self.grille.calculer_mines_adjacentes()
-            
             self.premier_clic = False  # Change l'état après le premier clic
-        
+        if self.drapeaux[x][y]:
+            QMessageBox.information(self, "Info", "Cette case est marquée avec un drapeau.")
+            return
+            
         # Vérifie si la case est une bombe
         if self.grille.grille[x][y] == -1:
-            # Révèle toutes les bombes en appelant la méthode All_bombes() de la classe CaseClass
-            positions_bombes = self.grille.All_bombes()  # Récupère la liste des positions des bombes
+            positions_bombes = self.grille.All_bombes() # Récupère la liste des positions des bombes
             for (i, j) in positions_bombes:
-                self.boutons[i][j].setText("💣")  # Affiche une bombe sur les boutons des cases où il y a une bombe
-            # Affiche un message de défaite
+                self.boutons[i][j].setText("💣")  
+            self.compteur.stop()    
             self.afficher_message_defaite()
             
-            # Arrête le chrono
-            self.compteur.stop()
             return
-
-        self.boutons[x][y].setText(str(self.grille.grille[x][y])) #affiche le numero de la case forcément differents de 1
+            
+        mines_adjacentes = self.grille.grille[x][y]
+        self.boutons[x][y].setText(str(mines_adjacentes))
+        
+        # Appliquer la couleur en fonction du nombre de mines adjacentes
+        self.appliquer_couleur(x, y, mines_adjacentes)
         
         if self.grille.grille[x][y] == 0:
             
@@ -131,12 +127,28 @@ class Fenetre(QWidget):
             for dx, dy in directions :
                 nx, ny = x + dx, y + dy
                 # Vérifie que nous ne sortons pas des limites de la grille
-                if 0 <= nx < self.grille.lignes and 0 <= ny < self.grille.colonnes:
+                if 0 <= nx < self.grille.nb_lignes and 0 <= ny < self.grille.nb_colonnes:
                 # Révèle la case adjacente
                     
                     if self.boutons[nx][ny].text() == "":
                         self.reveler_case(nx, ny)  # Appel récursif pour révéler les cases adjacentes
 
+    def appliquer_couleur(self, x, y, mines_adjacentes):
+            """Applique une couleur au bouton en fonction du nombre de mines adjacentes."""
+            couleurs = {
+                1: "blue",
+                2: "green",
+                3: "red",
+                4: "darkblue",
+                5: "darkred",
+                6: "cyan",
+                7: "magenta",
+                8: "gray",
+            }
+            self.boutons[x][y].setStyleSheet(f"color: {couleurs.get(mines_adjacentes, 'black')};")
+    
+        
+    
     
     def afficher_message_defaite(self):
         """Affiche un message indiquant que la partie est perdue."""
@@ -145,6 +157,15 @@ class Fenetre(QWidget):
         msg.setText("Vous avez perdu ! Toutes les bombes ont été révélées.")
         msg.setIcon(QMessageBox.Critical)
         msg.exec_()
+        
+    def afficher_message_victoire(self):
+        """Affiche un message indiquant que la partie est gagné."""
+        msg = QMessageBox()
+        msg.setWindowTitle("Victoire")
+        msg.setText("Vous avez gagné ! Toutes les bombes ont été trouvées.")
+        msg.setIcon(QMessageBox.Critical)
+        msg.exec_()
+    
     
     # def mousePressEvent(self,event):
     #     if event.button() == Qt.LeftButton:
@@ -159,7 +180,22 @@ class Fenetre(QWidget):
 
 
 if __name__ == "__main__":
+    niveau_choisi = input("Choisissez un niveau (débutant, intermédiaire, difficile) : ").lower()
+
     app = QApplication(sys.argv)
-    fenetre = Fenetre('intermédiaire')  # Tu peux choisir 'débutant', 'intermédiaire', ou 'difficile'
-    fenetre.show()
+    interface = Interfacejoueur(niveau_choisi)  # Tu peux choisir 'débutant', 'intermédiaire', ou 'difficile'
+    interface.show()
     sys.exit(app.exec_())
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

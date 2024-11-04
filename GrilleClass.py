@@ -11,36 +11,34 @@ Created on Thu Oct  3 14:58:18 2024
 import random
 
 class Grille:
-    # Niveaux prédéfinis
-    NIVEAUX = {
-        'débutant': {'lignes': 9, 'colonnes': 9, 'bombes': 10},
-        'intermédiaire': {'lignes': 16, 'colonnes': 16, 'bombes': 40},
-        'difficile': {'lignes': 16, 'colonnes': 30, 'bombes': 99}
-    }
+    
 
     def __init__(self, niveau='débutant', lignes=None, colonnes=None, nombre_de_bombes=None):
         
-        """
-        Initialise la grille selon le niveau choisi ou des paramètres personnalisés.
-        """
-       
-        print(f"Initialisation du niveau : {niveau}")
         
+        self.niveau = niveau
+        self.nb_lignes, self.nb_colonnes, self.nombre_de_bombes = self.set_niveau(niveau)
         
-        config = self.NIVEAUX[niveau]
-        self.lignes = config['lignes']
-        self.colonnes = config['colonnes']
-        self.nombre_de_bombes = config['bombes']
-        
-        print(f"Grille de {self.lignes} lignes et {self.colonnes} colonnes avec {self.nombre_de_bombes} bombes.")
+        print(f"Grille de {self.nb_lignes} lignes et {self.nb_colonnes} colonnes avec {self.nombre_de_bombes} bombes.")
         
         
         # Création de la grille
-        self.grille = [[0 for _ in range(self.colonnes)] for _ in range(self.lignes)]
+        self.grille = [[0 for _ in range(self.nb_colonnes)] for _ in range(self.nb_lignes)]
         
         print("Grille vide initialisée :")
+    
+    def set_niveau(self, niveau):
+        # Configure la taille de la grille et le nombre de bombes selon le niveau choisi
+        if niveau == 'débutant':
+            return 9, 9, 10
+        elif niveau == 'intermédiaire':
+            return 16, 16, 40
+        elif niveau == 'difficile':
+            return 16, 30, 99
+        else:
+            raise ValueError("Niveau invalide")
         
-     
+    
     def afficher_grille(self):
         
         """
@@ -64,7 +62,7 @@ class Grille:
         x, y = premier_clic
         
         # Générer toutes les positions possibles dans la grille
-        positions_possibles = [(i, j) for i in range(self.lignes) for j in range(self.colonnes)]
+        positions_possibles = [(i, j) for i in range(self.nb_lignes) for j in range(self.nb_colonnes)]
         
         # Exclure la case du premier clic et ses cases adjacentes
         directions = [(-1, -1), (-1, 0), (-1, 1),
@@ -74,7 +72,7 @@ class Grille:
         # Exclure les cases adjacentes au premier clic
         for dx, dy in directions:
             nx, ny = x + dx, y + dy
-            if 0 <= nx < self.lignes and 0 <= ny < self.colonnes:
+            if 0 <= nx < self.nb_lignes and 0 <= ny < self.nb_colonnes:
                 if (nx, ny) in positions_possibles:
                     positions_possibles.remove((nx, ny))
         
