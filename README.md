@@ -2,7 +2,7 @@
 Projet en orienté objet pour coder le jeu démineur en python.
 
 ## Table des matières
-- [Lancement du jeu](#Lancement)
+- [Lancement](#Lancement)
 - [Principales fonctionnalités du jeu](#fonctionnalite)
 - [Explication diagramme](#diagramme)
     - [Diagramme de classe](#diagramme_classe)
@@ -13,7 +13,7 @@ Pour lancer le jeu, il faut run la classe InterfaceJoueur. Une fois run, un mess
 
 Si une case contenant une bombe est cliquée, alors le message défaite apparaît. Si tous les drapeaux sont posés, alors le joueur a gagné et un message victoire apparaît.
 
-## Diagramme
+## Explication diagramme
 3 diagrammes différents sont fournis dans le dossier Diagramme: Diagramme de classe, diagramme d'activité et diagramme de cas d'utilisation
 
 
