@@ -3,7 +3,6 @@ Projet en orienté objet pour coder le jeu démineur en python.
 
 ## Table des matières
 - [Lancement](#Lancement)
-- [Principales fonctionnalités du jeu](#fonctionnalite)
 - [Explication diagramme](#diagramme)
     - [Diagramme de classe](#diagramme_classe)
 
